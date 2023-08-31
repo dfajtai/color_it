@@ -1,0 +1,12 @@
+/.idea
+**/.idea
+*/.idea
+**.pyc
+*.pyc
+/test_file.txt
+/venv/*
+/venv/
+/venv
+*/.ipynb_checkpoints/
+*/build/
+*json
