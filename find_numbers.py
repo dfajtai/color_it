@@ -22,7 +22,7 @@ def segment_numbers(input_path, filtered_img, out_dir):
   # handle centerline
   point_info_df, point_position_to_id_dict, point_info_dict = point_index_to_id(centerline_df)
 
-  # pointy branches 1,2,3,45,6,7,9
+  # pointy branches 1,2,3,4,5,6,7,9
   pointy_branches = extract_pointy_numbers(point_info_df=point_info_df,point_info_dict=point_info_dict)
   pointy_image = create_graph_segmentation_image(sample_image=filtered_img,
                           point_info_dict=point_info_dict,
@@ -48,4 +48,3 @@ def segment_numbers(input_path, filtered_img, out_dir):
   number_mask = np.zeros_like(merged_image)
   number_mask[merged_image>0] = 1
   return number_mask
-

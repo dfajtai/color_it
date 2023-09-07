@@ -157,7 +157,7 @@ def extract_pointy_numbers(point_info_df,point_info_dict, max_neighbour_count = 
         break
       pivot = neighbours[0] 
 
-      if pre_crossection_length >max_length:
+      if pre_crossection_length > max_length:
         break
     
     
@@ -174,7 +174,7 @@ def extract_pointy_numbers(point_info_df,point_info_dict, max_neighbour_count = 
   
   return branches
 
-def extract_looped_numbers(point_info_df,point_info_dict, max_neighbour_count= 2, min_neighbour_count = 2, loop_iteration_count = 20 ):
+def extract_looped_numbers(point_info_df,point_info_dict, max_neighbour_count= 2, min_neighbour_count = 1, loop_iteration_count = 50 ):
   """
   Searches for 'looped numbers' = numbers with endpoints: 0,8,(6,9)
   """
@@ -233,7 +233,9 @@ def extract_looped_numbers(point_info_df,point_info_dict, max_neighbour_count= 2
 
       has_crossection = False
       for n in neighbours:
-          if point_info_dict.get(n).get("cardinality") >= min_neighbour_count:
+          _neighbour_info = point_info_dict.get(n)
+          __neighbours = [n for n in _neighbour_info.get("neighbour_ids") if n not in branch]
+          if len(__neighbours) >= 1:
             touched_crosspoints+=1
             crosspoint_register[n] = True
             has_crossection = True

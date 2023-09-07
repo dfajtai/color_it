@@ -15,8 +15,7 @@ from scipy.signal import find_peaks
 
 import matplotlib.pyplot as plt
 
-def profile_based_area_segmentation(input_image, threshold_factor = 0.7, border = 5,
-                                    ):
+def profile_based_area_segmentation(input_image, threshold_factor = 0.7, border = 5):
   image_data = np.array(input_image)
   
   x_profile = np.sum(image_data,axis=0)
@@ -56,4 +55,5 @@ def background_segmentation(cropped_image, filtered_image):
   inv_mask = np.logical_not(mask)
   
   labeled_image, num_features = ndi.label(inv_mask)
-  print()
+
+  return labeled_image

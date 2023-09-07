@@ -5,6 +5,8 @@ import cv2
 import PIL
 import numpy as np
 
+from distinctipy import distinctipy
+
 from pdf2image import convert_from_path
 
 def convert_pdf_to_bitmap(input_pdf_path, dpi = 400, grayscale = True):
@@ -51,5 +53,32 @@ def create_graph_segmentation_image(sample_image, point_info_dict, branches):
   return grap_segment_image
 
 
+def auto_color_image_by_numbers(label_image, label_number_dict, possible_numbers):
+  assert isinstance(label_image,np.ndarray)
+  assert isinstance(label_number_dict,dict)
+  assert isinstance(possible_numbers,list)
+
+  possible_numbers = sorted(possible_numbers)
+  number_of_colors = len(possible_numbers)
+
+  colors = distinctipy.get_colors(number_of_colors, pastel_factor=0.8)
+  color_dict = {possible_numbers[i]:(np.array(colors[i])*255).astype(np.uint8).tolist() for i in range(number_of_colors)}
+
+  colored_image = cv2.cvtColor(np.ones_like(label_image,dtype=np.uint8)*255,cv2.COLOR_GRAY2RGB)
+  for label, numbers in label_number_dict.items():
+    if len(numbers) == 0:
+      continue
+
+    numbers = list(numbers)
+    
+    most_probable_number = max(set(numbers), key = numbers.count)
+
+    label_mask = label_image == label
+    
+    colored_image[label_mask==1] = color_dict[most_probable_number]
+
+  return colored_image
+
+  
 if __name__ == '__main__':
   pass

@@ -10,3 +10,6 @@
 */.ipynb_checkpoints/
 */build/
 *json
+*/*/*.jpeg
+*/*/*.png
+*/*/*.txt
