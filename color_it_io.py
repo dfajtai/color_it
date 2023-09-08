@@ -4,6 +4,7 @@ import os,sys,glob,re
 import cv2
 import PIL
 import numpy as np
+import pandas as pd
 
 from distinctipy import distinctipy
 
@@ -53,16 +54,36 @@ def create_graph_segmentation_image(sample_image, point_info_dict, branches):
   return grap_segment_image
 
 
-def auto_color_image_by_numbers(label_image, label_number_dict, possible_numbers):
+def color_image_by_numbers(label_image, label_number_dict, possible_numbers, palette = None, pastel_factor = 0.8):
   assert isinstance(label_image,np.ndarray)
   assert isinstance(label_number_dict,dict)
   assert isinstance(possible_numbers,list)
 
   possible_numbers = sorted(possible_numbers)
-  number_of_colors = len(possible_numbers)
-
-  colors = distinctipy.get_colors(number_of_colors, pastel_factor=0.8)
-  color_dict = {possible_numbers[i]:(np.array(colors[i])*255).astype(np.uint8).tolist() for i in range(number_of_colors)}
+  if not isinstance(palette, pd.DataFrame):
+    number_of_colors = len(possible_numbers)
+    colors = distinctipy.get_colors(number_of_colors, pastel_factor=pastel_factor)
+    color_dict = {possible_numbers[i]:(np.array(colors[i])*255).astype(np.uint8).tolist() for i in range(number_of_colors)}
+  else:
+    palette["rgb"] = palette.apply(lambda x: (x.get("R"),x.get("G"),x.get("B")),axis = 1)
+    palette_dict = {row.get("label"):row.get("rgb") for index,row in palette.iterrows() if row.get("missing")==False}
+    color_dict = {}
+    
+    already_used_colors = []
+    no_color_labels = []
+    for p in possible_numbers:
+      palette_color = palette_dict.get(p)
+      if isinstance(palette_color,type(None)):
+        no_color_labels.append(p)
+      else:
+        color_dict[p] = palette_color
+        already_used_colors.append(tuple(np.array(palette_color)/255.0))
+    
+    generated_colors = distinctipy.get_colors(len(no_color_labels),exclude_colors=already_used_colors, pastel_factor=pastel_factor)
+    for _i in range(len(no_color_labels)):
+      _label = no_color_labels[_i]
+      color_dict[_label] = tuple((np.array(generated_colors[_i])*255).astype(np.uint8))
+    
 
   colored_image = cv2.cvtColor(np.ones_like(label_image,dtype=np.uint8)*255,cv2.COLOR_GRAY2RGB)
   for label, numbers in label_number_dict.items():
@@ -74,8 +95,9 @@ def auto_color_image_by_numbers(label_image, label_number_dict, possible_numbers
     most_probable_number = max(set(numbers), key = numbers.count)
 
     label_mask = label_image == label
-    
-    colored_image[label_mask==1] = color_dict[most_probable_number]
+
+    if most_probable_number in color_dict.keys():
+      colored_image[label_mask==1] = color_dict[most_probable_number]
 
   return colored_image
 

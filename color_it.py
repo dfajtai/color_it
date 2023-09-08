@@ -14,6 +14,7 @@ def color_it_pipeline(input_pdf_list, out_dir):
   for s in input_pdf_list:
     print(s)
     iname = os.path.basename(s).replace(".pdf","")
+    idir = os.path.dirname(s)
     input_img = convert_pdf_to_bitmap(s)
     # input_image_name = iname+".jpeg"
     # cv2.imwrite(os.path.join(out_dir,input_image_name),input_img)
@@ -55,9 +56,20 @@ def color_it_pipeline(input_pdf_list, out_dir):
 
 
     # color labels
-    auto_colored_image = auto_color_image_by_numbers(label_image=labeled_image,label_number_dict=label_number_dict,possible_numbers=possible_numbers)
-    auto_colored_image_path = os.path.join(out_dir,iname+"_auto_colored.png")
-    cv2.imwrite(auto_colored_image_path,auto_colored_image)
+    palette_path = os.path.join(idir,"reference_colors", iname+"_colors.csv")
+    manual_color = False
+    if os.path.exists(palette_path):
+      palette_df = pd.read_csv(palette_path)
+      manual_color = True
+    else:
+      palette_df = None
+    colored_image = color_image_by_numbers(label_image=labeled_image,label_number_dict=label_number_dict,possible_numbers=possible_numbers,
+                                                palette = palette_df)
+    if not manual_color:
+      colored_image_path = os.path.join(out_dir,iname+"_auto_colored.png")
+    else:
+      colored_image_path = os.path.join(out_dir,iname+"_colored.png")
+    cv2.imwrite(colored_image_path,colored_image)
   
 
 if __name__ == '__main__':
